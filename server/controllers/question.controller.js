@@ -49,9 +49,29 @@ module.exports = {
 	},
 
 	findPost(req, res) {
+		// Question.findById(req.params.id)
+		// 	.populate('user')
+		// 	.populate('answers')
+		// 	.then((result) => {
+		// 		res.status(200).json({
+		// 			message: 'success',
+		// 			result
+		// 		})
+		// 	}).catch((err) => {
+		// 		res.status(400).json({
+		// 			message: 'failed',
+		// 			err
+		// 		})
+		// 	});
 		Question.findById(req.params.id)
 			.populate('user')
-			.populate('answers')
+			.populate({
+				path: 'answers',
+				populate: {
+					path: 'user',
+					model: 'user'
+				}
+			})
 			.then((result) => {
 				res.status(200).json({
 					message: 'success',
@@ -116,18 +136,19 @@ module.exports = {
 	},
 	
 	upVote(req, res) {
-			console.log('masuk upvote')
+			console.log('===> masuk upvote')
 			const user = req.headers.decoded.id
 			console.log(req.params.id)
 			console.log(user)
-			Question.findById(req.params.id)
-					.populate('user')
-					.then(question => {
-							if (question.user._id == user) {
-									res.status(404).json({
-											message: 'can\'t vote your own post'
-									})
-							}
+			Question
+				.findById(req.params.id)
+				.populate('user')
+				.then(question => {
+						if (question.user._id == user) {
+							res.status(404).json({
+								message: 'can\'t vote your own post'
+							})
+						} else {
 							let isFound = false
 							question.upVote.forEach(u => {
 									if (u == user) {
@@ -140,29 +161,30 @@ module.exports = {
 									}
 							})
 							if (!isFound) {
-									Question.findByIdAndUpdate(req.params.id, {
-											$push: {
-													upVote: user
-											}
+								Question.findByIdAndUpdate(req.params.id, {
+									$push: {
+										upVote: user
+									}
+								})
+								.then((result) => {
+									res.status(200).json({
+										message: 'Success To Up Vote',
+										result
 									})
-											.then((result) => {
-													res.status(200).json({
-															message: 'Success To Up Vote',
-															result
-													})
-											})
+								})
 							} else {
-									res.status(401).json({
-											message: 'failed you has already voted'
-									})
+								res.status(401).json({
+									message: 'failed you has already voted'
+								})
 							}
+						}
+				})
+				.catch((err) => {
+					res.status(400).json({
+						message: 'failed',
+						err
 					})
-					.catch((err) => {
-							res.status(400).json({
-									message: 'failed',
-									err
-							})
-					});
+				});
 	},
 	downVote(req, res) {
 			const user = req.headers.decoded.id
@@ -173,35 +195,36 @@ module.exports = {
 									res.status(404).json({
 											message: 'can\'t vote your own post'
 									})
-							}
-							let isFound = false
-							question.upVote.forEach(u => {
-									if (u == user) {
-											isFound = true
-									}
-							})
-							question.downVote.forEach(u => {
-									if (u == user) {
-											isFound = true
-									}
-							})
-							if (!isFound) {
-									Question.findByIdAndUpdate(req.params.id, {
-											$push: {
-													downVote: user
-											}
-									})
-											.exec()
-											.then((result) => {
-													res.status(200).json({
-															message: 'Success To Down Vote',
-															result
-													})
-											})
 							} else {
-									res.status(401).json({
-											message: 'failed you has already voted'
-									})
+								let isFound = false
+								question.upVote.forEach(u => {
+										if (u == user) {
+												isFound = true
+										}
+								})
+								question.downVote.forEach(u => {
+										if (u == user) {
+												isFound = true
+										}
+								})
+								if (!isFound) {
+										Question.findByIdAndUpdate(req.params.id, {
+												$push: {
+														downVote: user
+												}
+										})
+												.exec()
+												.then((result) => {
+														res.status(200).json({
+																message: 'Success To Down Vote',
+																result
+														})
+												})
+								} else {
+										res.status(401).json({
+												message: 'failed you has already voted'
+										})
+								}
 							}
 					})
 					.catch((err) => {

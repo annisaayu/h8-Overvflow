@@ -19,7 +19,6 @@ app.set('view engine', 'ejs')
 
 let dbuser = process.env.dbuser
 let dbpassword = process.env.dbpassword
-// let url = `mongodb://${dbuser}:${dbpassword}@ds231460.mlab.com:31460/hacktiv8overflow_anugrah`
 let url = `mongodb://${dbuser}:${dbpassword}@ds125381.mlab.com:25381/h8overflow`
 mongoose.connect(url)
 
