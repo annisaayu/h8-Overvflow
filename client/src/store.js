@@ -19,7 +19,7 @@ export default new Vuex.Store({
   },
   actions: {
     allQuestions (context, payload) {
-      axios.get('http://localhost:3000/questions')
+      axios.get('https://h8overflow-server.annisaayu.tech/questions')
         .then(response => {
           console.log(response.data.result)
           context.commit('allQuestions', response.data.result)
